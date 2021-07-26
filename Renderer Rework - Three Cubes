@@ -1,0 +1,294 @@
+local ok, err = xpcall(function()
+local mon = peripheral.find("monitor")
+local ar = peripheral.find("arController")
+local pd = peripheral.find("playerDetector")
+local oldTerm = term.redirect(mon)     
+mon.setTextScale(0.5)
+mon.setCursorPos(1,1)
+mon.clear() 
+term.setCursorPos(1,1)
+term.clear() 
+
+--#### Customize these settings ####
+
+local fov = math.rad(90)
+local strokeSize = 1 --Default size of the lines drawn.
+local colorDefault = 0xF6B26B  --Default color in hex.
+local width = 530 --Adjust these to the resolution of your AR goggles. Guestimate screen width and height / 3. If the renders aren't centered it's because this is wrong.
+local height = 300
+
+--#### Variables ####
+
+local n = 0.1  --Focal length
+local f = 10 --how far camera sees
+local r = width
+local l = 0
+local t = 0
+local b = height
+local aspectRatio = height/width
+local S = aspectRatio / (math.tan(fov) * 0.5)
+
+local cDot = 0.5*strokeSize
+local frame = 0
+
+local projected = {}
+
+--#### Some Functions ####
+
+local function makeRotationMatrix(x,y,z)
+    x = math.rad(x)
+    y = math.rad(y)
+    z = math.rad(z)
+    return {
+        { math.cos(y) * math.cos(z),    -math.cos(y) * math.sin(z),     math.sin(y),    0 },
+        { (math.sin(x) * math.sin(y) * math.cos(z)) + (-math.cos(x) * math.sin(z)),     (-math.sin(x) * math.sin(y) * math.sin(z)) + (math.cos(x) * math.cos(z)),    -math.sin(x) * math.cos(y),    0},
+        { (-math.cos(x) * math.sin(y) * math.cos(z)) + (math.sin(x) * math.sin(z)),     (math.cos(x) * math.sin(y) * math.sin(z)) + (math.sin(x) * math.cos(z)),    math.cos(x) * math.cos(y),   0},
+        { 0, 0, 0, 1}, }
+end
+
+local function makeModelMatrix(x,y,z)
+    return {
+        { x, 0, 0, 0},
+        { 0, y, 0, 3},
+        { 0, 0, z, 0},
+        { 0, 0, 0, 1}, }
+end
+
+local function makeTranslationMatrix(x,y,z)
+    return {
+        { 1, 0, 0, -x },
+        { 0, 1, 0, -y },
+        { 0, 0, 1, -z },
+        { 0, 0, 0, 1} }
+end
+
+local projection = {
+    { aspectRatio / math.tan(fov * 0.5), 0, 0, 0 },
+    { 0, 1 / (math.tan(fov * 0.5)), 0, 0 },
+    { 0, 0, -f / (f - n), - f * n / (f - n) },
+    { 0, 0, -1, 0 } }
+
+local identityMatrix = {
+    { 1, 0, 0, 0},
+    { 0, 1, 0, 0},
+    { 0, 0, 1, 0},
+    { 0, 0, 0, 1} }
+
+
+local objectList = {
+    cube1 = {
+        {"cube"},
+        {1, 1, 1},--Scale
+        {0, 0, 0},--Rotation
+        {0, -2, 3},--Translation
+        {0x3498DB},--Color
+    },
+}
+
+    --[[local function getData(name) 
+    local pos = pd.getPlayerPos(name) 
+    locX = pos.x
+    locY = pos.y
+    locZ = pos.z
+end  ]]
+
+local function drawLine(x1,y1,x2,y2,id)
+    local dx = x2 - x1
+    local dy = y2 - y1
+    for i = 1, 100 do
+        local nextY = y1 + dy * (i / 100)
+        local nextX = x1 + dx * (i / 100)
+        if nextY > 0 + strokeSize and nextX > 0 + strokeSize then
+            ar.fill(nextX - cDot, nextY - cDot, nextX + cDot, nextY + cDot, objectList[id][5][1])
+        end
+    end
+end
+
+local function printMatrix(m)
+    print(#m.." x "..#m[1])
+    print("------------")
+    for i = 1, #m do
+        for j = 1, #m[1] do
+            mon.write(m[i][j].." ")
+        end
+        print()
+    end
+    print()
+end
+
+local function matmul(m1, m2)
+    if #m1[1] ~= #m2 then
+        error("Columns m1 must match rows m2",2)
+        return nil
+    end
+    local result = {}
+    for i = 1, #m1 do
+        result[i] = {}
+        for j = 1, #m2[1] do
+            local sum = 0
+            for k = 1, #m2 do
+                sum = sum + (m1[i][k] * m2[k][j])
+            end
+        result[i][j] = sum
+        end
+    end
+    return result
+end
+
+-- #### 3D Base Models ####
+
+local cubeTriangles = {
+    {--South 2
+        {   {0}, {0}, {1}, {1}, },
+        {   {0}, {1}, {1}, {1}, },
+        {   {1}, {1}, {1}, {1}, }, },
+    {--South 2
+        {   {0}, {0}, {1}, {1}, },
+        {   {1}, {1}, {1}, {1}, },
+        {   {1}, {0}, {1}, {1}, }, },
+    {--East 1
+        {   {1}, {0}, {1}, {1}, },
+        {   {1}, {1}, {1}, {1}, },
+        {   {1}, {1}, {0}, {1}, }, },
+    {--East 2
+        {   {1}, {0}, {1}, {1}, },
+        {   {1}, {1}, {0}, {1}, },
+        {   {1}, {0}, {0}, {1}, }, },
+    {--North 1
+        {   {1}, {0}, {0}, {1}, },
+        {   {1}, {1}, {0}, {1}, },
+        {   {0}, {1}, {0}, {1}, }, },
+    {--North 2
+        {   {1}, {0}, {0}, {1}, },
+        {   {0}, {1}, {0}, {1}, },
+        {   {0}, {0}, {0}, {1}, }, },
+    {--East 1
+        {   {0}, {0}, {0}, {1}, },
+        {   {0}, {1}, {0}, {1}, },
+        {   {0}, {1}, {1}, {1}, }, },
+    {--East 2
+        {   {0}, {0}, {0}, {1}, },
+        {   {0}, {1}, {1}, {1}, },
+        {   {0}, {0}, {1}, {1}, }, },
+    {--Top 1
+        {   {1}, {1}, {0}, {1}, },
+        {   {1}, {1}, {1}, {1}, },
+        {   {0}, {1}, {1}, {1}, }, },
+    {--Top 1
+        {   {1}, {1}, {0}, {1}, },
+        {   {0}, {1}, {1}, {1}, },
+        {   {0}, {1}, {0}, {1}, }, },
+    {--Bottom 1
+        {   {0}, {0}, {1}, {1}, },
+        {   {0}, {0}, {0}, {1}, },
+        {   {1}, {0}, {0}, {1}, }, },
+    {--Bottom 2
+        {   {0}, {0}, {1}, {1}, },
+        {   {1}, {0}, {0}, {1}, },
+        {   {1}, {0}, {1}, {1}, }, },
+}
+
+-- #### Drawing Stuff ####
+
+
+local function makeCube(id)
+    objectList[id] = {
+        {"cube"},
+        {1, 1, 1},--Scale
+        {0, 0, 0},--Rotation
+        {0, 0, 0},--Translation
+        {colorDefault},--Color
+    }
+end
+
+local function transformToScreen(id,targetModelBase)
+    local result = {}
+    local modelMat = makeTranslationMatrix(objectList[id][2][1],objectList[id][2][2],objectList[id][2][3])
+    local rotMat = makeTranslationMatrix(objectList[id][3][1],objectList[id][3][2],objectList[id][3][3])
+    local transMat = makeTranslationMatrix(objectList[id][4][1],objectList[id][4][2],objectList[id][4][3])
+    for i = 1, #targetModelBase do
+        result[i] = {}
+        projected[i] = {}
+        for j = 1, #targetModelBase[i] do
+            result[i][j] = matmul(projection, matmul(transMat, matmul(rotMat, matmul(modelMat, targetModelBase[i][j]))))
+            local w = result[i][j][4][1]
+            for k = 1, 4 do
+                result[i][j][k][1] = result[i][j][k][1] / w
+            end
+            result[i][j][1][1] = (result[i][j][1][1] + 1.0) * 0.5 * width
+            result[i][j][2][1] = (result[i][j][2][1] + 1.0) * 0.5 * height
+            projected[i][j] = result[i][j]
+        end
+    end
+end
+
+local function connectTriangles(id)
+    for i = 1, #projected do
+        drawLine(projected[i][1][1][1], projected[i][1][2][1], projected[i][2][1][1], projected[i][2][2][1], id)
+        drawLine(projected[i][2][1][1], projected[i][2][2][1], projected[i][3][1][1], projected[i][3][2][1], id)
+        drawLine(projected[i][3][1][1], projected[i][3][2][1], projected[i][1][1][1], projected[i][1][2][1], id)
+    end
+end
+
+local function draw(id)
+    if objectList[id][1][1] == "cube" then
+        transformToScreen(id,cubeTriangles)
+        connectTriangles(id)
+    end
+end
+
+local function setScale(id,x,y,z)
+    x,y,z = x,y,z or 1,1,1 
+    objectList[id][2][1] = x
+    objectList[id][2][2] = y
+    objectList[id][2][3] = z
+end
+
+local function setLoc(id,x,y,z)
+    x,y,z = x,y,z or 0,0,0 
+    objectList[id][4][1] = x
+    objectList[id][4][2] = y
+    objectList[id][4][3] = z
+end
+
+local function setRot(id,x,y,z)
+    x,y,z = x,y,z or 0,0,0 
+    objectList[id][3][1] = x
+    objectList[id][3][2] = y
+    objectList[id][3][3] = z
+end
+
+local function setColor(id,color)
+    objectList[id][5][1] = color
+end
+
+local function incrementMatValue(id,i,j,k)
+    objectList[id][i][k] = objectList[id][i][k] + k
+end
+
+--== Define objects to draw ==
+
+makeCube("cube2")
+setLoc("cube2",1,-2,3)
+setColor("cube2",0xFA4B36)
+
+makeCube("cube3")
+setLoc("cube3",-1,-2,3)
+setColor("cube3",0x36FA5D)
+
+--== Draw loop ==
+
+while true do
+    frame = frame + 1
+    mon.setCursorPos(1,1)
+    print(frame)
+    --getData("jig487")
+
+    os.sleep(0.05)
+    ar.clear()
+    draw("cube1")
+    draw("cube2")
+    draw("cube3")
+end
+
+end, debug.traceback) if not ok then printError(err) end
