@@ -97,29 +97,12 @@ end
 local function makeRotationMatrix(x,y,z)
     x = math.rad(x)
     y = math.rad(y)
-    z = math.rad(z)--[[
-    local rotX = {
-        { 1, 0,            0,           0},
-        { 0, math.cos(x), -math.sin(x), 0},
-        { 0, math.sin(x),  math.cos(x), 0},
-        { 0, 0,            0,           1}, }
-    local rotY = {
-        {  math.cos(y), 0, math.sin(y), 0 },
-        {  0,           1, 0,           0 },
-        { -math.sin(y), 0, math.cos(y), 0 },
-        {  0,           0, 0,           1 }, }
-    local rotZ = {
-        { math.cos(z), -math.sin(z), 0, 0},
-        { math.sin(z),  math.cos(z), 0, 0},
-        { 0,            0,           1, 0},
-        { 0,            0,           0, 1}, }
-    return matmul(rotZ, matmul(rotX, rotY))   ]]
+    z = math.rad(z)
     return {
         {   math.cos(y) * math.cos(z),                                                -math.cos(y) * math.sin(z),                                               math.sin(y),               0 },
         {  (math.sin(x) * math.sin(y) * math.cos(z)) + (math.cos(x) * math.sin(z)), (-math.sin(x) * math.sin(y) * math.sin(z)) + (math.cos(x) * math.cos(z)),  -math.sin(x) * math.cos(y), 0},
         { (-math.cos(x) * math.sin(y) * math.cos(z)) + (math.sin(x) * math.sin(z)),   (math.cos(x) * math.sin(y) * math.sin(z)) + (math.sin(x) * math.cos(z)),  math.cos(x) * math.cos(y), 0},
         { 0, 0, 0, 1}, }
-    --return identityMatrix
 end
 
 local objectList = {
@@ -260,40 +243,40 @@ local function draw(id) --draw the cube to the screen
     connectTriangles(id)
 end
 
-local function setScale(id,x,y,z) --Set the initial scale of an object. 1 = x val, 2 = y val, 3 = z val
+local function setScale(id,x,y,z) --Set the initial scale of an object.
     x,y,z = x,y,z or 1,1,1 
     objectList[id][2][1] = x
     objectList[id][2][2] = y
     objectList[id][2][3] = z
 end
 
-local function setRot(id,x,y,z) --Set the initial rotation of an object. 1 = x val, 2 = y val, 3 = z val
+local function setRot(id,x,y,z) --Set the initial rotation of an object.
     x,y,z = x,y,z or 0,0,0 
     objectList[id][3][1] = x
     objectList[id][3][2] = y
     objectList[id][3][3] = z
 end
 
-local function setLoc(id,x,y,z) --Set the initial location of an object. 1 = x val, 2 = y val, 3 = z val
+local function setLoc(id,x,y,z) --Set the initial location of an object.
     x,y,z = x,y,z or 0,0,0 
     objectList[id][4][1] = x
     objectList[id][4][2] = y
     objectList[id][4][3] = z
 end
 
-local function setColor(id,color) --Set the initial color of an object. 1 = x val, 2 = y val, 3 = z val
+local function setColor(id,color) --Set the initial color of an object.
     objectList[id][5][1] = color
 end
 
-local function incrementScale(id,j,k) --Increment the scale of an object. 1 = x val, 2 = y val, 3 = z val,  k is by how much
+local function incrementScale(id,j,k) --Increment the scale of an object. for j [[ 1 = x val, 2 = y val, 3 = z val ]],  k is by how much
     objectList[id][2][j] = objectList[id][2][j] + k
 end
 
-local function incrementRot(id,j,k)  --Increment the rotation of an object. 1 = x val, 2 = y val, 3 = z val,  k is by how much
+local function incrementRot(id,j,k)  --Increment the rotation of an object. j [[ 1 = x val, 2 = y val, 3 = z val ]],  k is by how much
     objectList[id][3][j] = objectList[id][3][j] + k
 end
 
-local function incrementLoc(id,j,k)  --Increment the location of an object. 1 = x val, 2 = y val, 3 = z val,  k is by how much
+local function incrementLoc(id,j,k)  --Increment the location of an object. j [[ 1 = x val, 2 = y val, 3 = z val ]],  k is by how much
     objectList[id][4][j] = objectList[id][4][j] + k
 end
 
