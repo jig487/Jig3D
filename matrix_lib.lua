@@ -35,31 +35,6 @@ local function multiply(m1, m2)
     return result
 end
 
-
--- Special matrix generators
-
-local function makeIdentity()
-    return 
-    {
-        { 1, 0, 0, 0 },
-        { 0, 1, 0, 0 },
-        { 0, 0, 1, 0 },
-        { 0, 0, 0, 1 }
-    }
-end
-
-local function makePerspective(width, height, n, f, fov)
-    local aspectRatio = height / width
-    fov = math.rad(fov)
-    return
-    {
-        { aspectRatio / math.tan(fov * 0.5), 0, 0, 0 },
-        { 0, 1 / (math.tan(fov * 0.5)), 0, 0 },
-        { 0, 0, -f / (f - n), - f * n / (f - n) },
-        { 0, 0, -1, 0 }
-     }
-end
-
 -- Transform matrix generators
 
 local function makeRotation(eulers)
@@ -104,6 +79,45 @@ local function makeScale(scale)
     }        
 end
 
+
+-- Special matrix generators
+
+local function makeIdentity()
+    return 
+    {
+        { 1, 0, 0, 0 },
+        { 0, 1, 0, 0 },
+        { 0, 0, 1, 0 },
+        { 0, 0, 0, 1 }
+    }
+end
+
+local function makePerspective(width, height, n, f, fov)
+    local aspectRatio = height / width
+    fov = math.rad(fov)
+    return
+    {
+        { aspectRatio / math.tan(fov * 0.5), 0, 0, 0 },
+        { 0, 1 / (math.tan(fov * 0.5)), 0, 0 },
+        { 0, 0, -f / (f - n), - f * n / (f - n) },
+        { 0, 0, -1, 0 }
+     }
+end
+
+local function makeView(position, forward)
+    local up = vector.new(0, 1, 0)
+    local right = forward:cross(up)
+
+    return 
+    {
+        { right.x, up.x, forward.x, position.x },
+        { right.y, up.y, forward.y, position.y },
+        { right.z, up.z, forward.z, position.z },    
+        { 0      , 0   , 0        , 1          }
+    }
+
+end
+
 -- expose library functions
 
 return 
@@ -111,6 +125,7 @@ return
     multiply = multiply, 
     makeIdentity = makeIdentity,
     makePerspective = makePerspective,
+    makeView = makeView,
     makeRotation = makeRotation,
     makeTranslation = makeTranslation,
     makeScale = makeScale

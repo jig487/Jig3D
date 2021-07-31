@@ -47,15 +47,17 @@ local frame = 0
 
 --#### Some Functions ####
 
-local projection = matrix.makePerspective(width, height, n, f, fov)
+local cameraPosition = vector.new(0, 0, 5)
 
+local projection = matrix.makePerspective(width, height, n, f, fov)
+local view = matrix.makeView(cameraPosition, cameraRotation)
 
 local objectList = {}
 
 local function drawLineAR(x1,y1,x2,y2)
     local dx = x2 - x1
     local dy = y2 - y1
-    for i = 1, 100 do
+    for i = 1, 45 do
         local nextY = y1 + dy * (i / 100)
         local nextX = x1 + dx * (i / 100)
         if nextY > 0 + strokeSize and nextX > 0 + strokeSize then
@@ -167,37 +169,54 @@ local function transformToScreen(object)
     local transMat = matrix.makeTranslation(object.translation)
 
     local modelMat = matrix.multiply(matrix.multiply(transMat, rotMat), scaleMat)
-
+    -- Transform the triangles
     for i = 1, #object.mesh.tris do
         projected[i] = {}
 
-        -- Apply model matrix to polygon
+        -- Do all three vertex MVP multiplies in one loop
         for j = 1, 3 do
+            
+            -- Apply model matrix to polygon
             projected[i][j] = matrix.multiply(modelMat, object.mesh.tris[i][j])
-        end
+            
+            
+            -- Apply view matrix
 
-        -- Back face culling
-        -- If current tri's normal is away from the camera, cull
-        if getDotProduct(cameraVector, getCrossProduct(projected[i])) >= 0 then --Add a cull flag if dotProduct is > 0
-            projected[i][1] = "cull"
-            --print("Culling: "..i)
-        else         
-            --print(i.." passed culling")
+            projected[i][j] = matrix.multiply(view, projected[i][j])
 
             -- Perspective projection and division
-            for j = 1, 3 do
-                -- Projection
-                projected[i][j] = matrix.multiply(projection, projected[i][j])
-                local w = projected[i][j][4][1]
-                -- Perspective Division
-                for k = 1, 4 do
-                    projected[i][j][k][1] = projected[i][j][k][1] / w
+
+            -- Projection
+            projected[i][j] = matrix.multiply(projection, projected[i][j])
+            local w = projected[i][j][4][1]
+
+            -- Perspective Division
+            for k = 1, 4 do
+                projected[i][j][k][1] = projected[i][j][k][1] / w
+
+                -- clip space culling, polygons that never are on screen can get thrown out
+                if projected[i][j][k][1] > 1 or projected[i][j][k][1] < -1 then
+                    --projected[i][1] = "cull"
+                    --break
                 end
+            end   
+
+            if projected[i][1] ~= "cull" then
                 -- Conversion to screen space coordinates (viewport stuff)
                 projected[i][j][1][1] = (projected[i][j][1][1] + 1.0) * 0.5 * width
-                projected[i][j][2][1] = (projected[i][j][2][1] + 1.0) * 0.5 * height
+                projected[i][j][2][1] = (-projected[i][j][2][1] + 1.0) * 0.5 * height
             end
+            
         end
+
+        -- Cull back facing polygons
+        if projected[i][1] ~= "cull" then
+            if getDotProduct(cameraVector, getCrossProduct(projected[i])) >= 0 then --Add a cull flag if dotProduct is > 0
+                --projected[i][1] = "cull"
+                --break -- exit the for loop and don't process the other points, this polygon got culled
+            end
+        end   
+
     end
     return projected
 end
@@ -321,6 +340,35 @@ local function drawSolidModel(id)
     end
 end
 
+local function getPlayerData()
+    -- regex to search with
+    local re = "%d+%.%d+"
+    local raw
+    _, raw = commands.data("get entity @r Pos")
+    raw = textutils.serialize(raw)
+
+    local pos = {}
+    local i = 1
+
+    for w in string.gmatch(raw, re) do
+        pos[i] = tonumber(w)
+        i = i + 1
+    end
+
+    _, raw = commands.data("get entity @r Rotation")
+    raw = textutils.serialize(raw)
+
+    local rot = {}
+    local i = 1
+
+    for w in string.gmatch(raw, re) do
+        rot[i] = tonumber(w)
+        i = i + 1
+    end
+
+    return pos, rot
+end
+
 --== Define objects to draw ==
 
 makeCube("default")
@@ -332,8 +380,7 @@ objectList["bigger"].translation.z = cube1.translation.z
 objectList["bigger"].scale.y = 3
 local shrek = objectList["shrek"]
 shrek.translation = {x=0, y=0, z=-4}
-shrek.mesh = genMeshFromFile("model.obj")
-shrek.scale.y = -1
+--shrek.mesh = genMeshFromFile("model.obj")
 --== Draw loop ==
 
 while true do
@@ -342,8 +389,22 @@ while true do
     print("Frame: "..frame)
     --getData("jig487")
 
-    cube1.rotation.x = cube1.rotation.x + 5
+    cube1.rotation.z = cube1.rotation.z + 5
     shrek.rotation.y = shrek.rotation.y + 20
+
+    local playerPos
+    local playerRot
+    local forward = vector.new(0, 0, -1)
+
+    playerPos, playerRot = getPlayerData()    
+
+    cameraPosition.x = playerPos[1]
+    cameraPosition.y = playerPos[2]
+    cameraPosition.z = playerPos[3]
+
+    playerRot
+
+    view = matrix.makeView(cameraPosition, forward)
 
     local results = {}
     for name, object in pairs(objectList) do
