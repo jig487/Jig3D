@@ -2,7 +2,7 @@
 
 --Draws a line from x1,y1 to x2,y2 with given color, using name of wrapped AR controller
 local function drawLineAR(arController,x1,y1,x2,y2,color)
-    color = 0x000000
+    color = 0x000000 --Overriding color to black. Comment out to use custom colors
     local width = 0.5
     local dx = x2 - x1
     local dy = y2 - y1
@@ -28,7 +28,7 @@ end
 local function drawWireObj(arController,iL,vL,cL) --vL == vertice list. cL == color list
     local vList = {}
     for i = 1, #iL, 3 do --Draws a whole triangle per loop
-        if not vL.cullFlags[i] then --if not marked for culling then render
+        if vL.cullFlags[i] >= 0 then --if not marked for culling then render
             local i1,i2 = i+1, i+2
             local col = cL[(i+2)/3]
             drawLineAR(arController, vL[ iL[i] ],  vL[ iL[i] +1 ],  vL[ iL[i1] ], vL[ iL[i1]+1 ], col) --vert 1 to 2
@@ -38,6 +38,7 @@ local function drawWireObj(arController,iL,vL,cL) --vL == vertice list. cL == co
     end
 end
 
+--Both draw flat top and bottom draw an entire line at a time instead of each pixel individually b/c performance. Will add individual pixel support later.
 local function drawFlatTopTriangle( arController,vec1,vec2,vec3,color )
     --Calculate slopes in screen space
     --Run over rise so we don't get infinite slopes
@@ -46,7 +47,7 @@ local function drawFlatTopTriangle( arController,vec1,vec2,vec3,color )
 
     --Calculate start and end scanlines
     local yStart = math.ceil(vec1.y - 0.5)
-    local yEnd =   math.ceil(vec3.y - 0.5) --the scanline AFTER the last line drawn
+    local yEnd =   math.ceil(vec3.y - 0.5)-1 --the scanline AFTER the last line drawn
 
     for y = yStart, yEnd do
         --calculate start and end x's
@@ -57,15 +58,6 @@ local function drawFlatTopTriangle( arController,vec1,vec2,vec3,color )
         --calculate start and end pixelels
         local xStart = math.ceil(px1 - 0.5)
         local xEnd =   math.ceil(px2 - 0.5) --the pixel after the last pixel drawn
-        --if xEnd > 150 then --Prints values and errors when you get the stretched line glitch
-        --    print("Flat top error:")
-        --    print(textutils.serialize(vec1))
-        --    print(textutils.serialize(vec2))
-        --    print(textutils.serialize(vec3))
-        --    print("m1, m2 = "..m1,m2)
-        --    print("px1, px2 = "..px1,px2)
-        --    error("xEnd is doing some wack shit, yo. xEnd: "..xEnd)
-        --end
 
         drawHLine( arController,xStart,xEnd,y,color )
     end
@@ -78,7 +70,7 @@ local function drawFlatBottomTriangle( arController,vec1,vec2,vec3,color )
 
     --Calculate start and end scanlines
     local yStart = math.ceil(vec1.y-0.5)
-    local yEnd =   math.ceil(vec3.y-0.5) --the scanline AFTER the last line drawn
+    local yEnd =   math.ceil(vec3.y-0.5)-1 --the scanline AFTER the last line drawn, which is why we need to subtract 1 otherwise we get visual bugs
 
     for y = yStart, yEnd do
 
@@ -90,21 +82,14 @@ local function drawFlatBottomTriangle( arController,vec1,vec2,vec3,color )
         --calculate start and end pixelsh
         local xStart = math.ceil(px1 - 0.5)
         local xEnd =   math.ceil(px2 - 0.5)
-        --if xEnd > 150 then
-        --    print("Flat bottom error:")
-        --    print(textutils.serialize(vec1))
-        --    print(textutils.serialize(vec2))
-        --    print(textutils.serialize(vec3))
-        --    print("m1, m2 = "..m1,m2)
-        --    print("px1, px2 = "..px1,px2)
-        --    error("xEnd is doing some wack shit, yo. xEnd: "..xEnd)
-        --end
+
         drawHLine( arController,xStart,xEnd,y,color )
     end
 end
 
 --Draws a solid triangle from 3 vectors
 local function drawSolidTriangle( arController,vec1,vec2,vec3,color )
+    
     --using pointers so we can swap (for sorting purposes) probably don't need this b/c lua? idk
     local pv1 = vec1
     local pv2 = vec2
@@ -145,7 +130,7 @@ end
 local function drawSolidObj( arController,iL,vL,cL ) --iL == index List. vL == vertex list. cL == color list
     --OPTIMIZATION here?. Probably should convert to 1D at least
     for i = 1, #iL, 3 do --Try to draw a triangle
-        if not vL.cullFlags[i] then --If cullFlags[i] is true then render, else cull that polygon
+        if vL.cullFlags[i] >= 0 then --If true then render, else cull that polygon
             local i1,i2 = i+1, i+2
             local vec1 = { x= vL[ iL[i]  ], y= vL[ iL[i]+1  ], z= vL[ iL[i]+2  ] } --Target vertex1's x/y and z
             local vec2 = { x= vL[ iL[i1] ], y= vL[ iL[i1]+1 ], z= vL[ iL[i1]+2 ] } --Target vertex2's x/y and z
