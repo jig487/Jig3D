@@ -100,30 +100,30 @@ end
 
 --Returns data of default cube
 local function newCube()
-    local cubeData = {
+    local objData = {
         --Matrix values
         scale = vector.new(1,1,1), --Scale of model
         loc = vector.new(0,0,0),   --Location of model
         rot = vector.new(0,0,0),   --Rotation of model
         --define the colors of each triangle in hexidecimal
         colorList = {
-            0xE56399, 0x7F96FF,
-            0xE56399, 0x7F96FF,
+            0xBA1F33, 0xCD5D67,
+            0xF2A65A, 0xEEC170,
 
-            0xE56399, 0x7F96FF,
-            0xE56399, 0x7F96FF,
+            0x46B1C9, 0x84C0C6,
+            0xBFACB5, 0xE5D0CC,
 
-            0xE56399, 0x7F96FF,
-            0xE56399, 0x7F96FF,
+            0xF564A9, 0xFAA4BD,
+            0x8CD790, 0xAAFCB8,
         },
         --points to three vertices in vertices list to describe a triangle
         indexList = {
             --1 face, composed of 2 triangles, each defined by 3 points. 
-            --These are multiplied by 4 then offset by -3 because it's a 1D table and it's way easier to read
+            --These are multiplied by 4 then offset by -3 because it's a 1D table and it's way easier to read if they are kept like this
             1,3,2, 3,4,2, 
             2,4,6, 4,8,6,
 
-            3,7,4, 4,6,8,
+            3,7,4, 4,7,8,
             5,6,8, 5,8,7,
 
             1,5,3, 3,5,7,
@@ -140,10 +140,10 @@ local function newCube()
             -0.5,  0.5, 0.5, 1,  
              0.5,  0.5, 0.5, 1, }
         }
-    for i,val in ipairs(cubeData.indexList) do
-        cubeData.indexList[i] = val*4-3
+    for i,val in ipairs(objData.indexList) do
+        objData.indexList[i] = val*4-3
     end
-    return cubeData
+    return objData
 end
 --Returns data of default square
 local function newSqr() --Refer to newCube() for comments
@@ -163,23 +163,6 @@ local function newSqr() --Refer to newCube() for comments
     end
     return objData
 end
---Returns data of default triangle
-local function newTri() --Refer to newCube() for comments
-    local objData = {
-        scale = vector.new(1,1,1),
-        loc = vector.new(0,0,0),  
-        rot = vector.new(0,0,0),  
-        colorList = { 0xE56399, 0x7F96FF, },
-        indexList = { 1,3,2, },
-        vertices = {
-            -0.5, -0.5, -0.5, 1,
-             0.5, -0.5, -0.5, 1, 
-            -0.5,  0.5, -0.5, 1, }, }
-    for i,val in ipairs(objData.indexList) do
-        objData.indexList[i] = val*4-3
-    end
-    return objData
-end
 
 --Takes in an entire object and returns transformed vertices and a cullFlag list
 local function screenTransform(objectData,display,camera)
@@ -189,13 +172,15 @@ local function screenTransform(objectData,display,camera)
     local transMat = makeTranslation(objectData.loc)
     --Transforms the entire object
     local result = multiplyVerts(transMat, multiplyVerts(rotMat, multiplyVerts(scale, objectData.vertices)))
-    --Backface culling
+    --Getting the cross product of each face to later be used for backface culling
     result.cullFlags = {}
     for i = 1, #iL, 3 do 
         local i1,i2 = i+1, i+2
-        local vec1 = vector.new(result[iL[i1]], result[iL[i1]+1], result[iL[i1]+2])
-        local vec2 = vector.new(result[iL[i2]], result[iL[i2]+1], result[iL[i2]+2])
-        result.cullFlags[i] = camera.loc:dot(vec1:cross(vec2)) >= 0
+        local vec1 = vector.new(result[iL[i]], result[iL[i]+1], result[iL[i]+2])
+        local vec2 = vector.new(result[iL[i1]], result[iL[i1]+1], result[iL[i1]+2])
+        local vec3 = vector.new(result[iL[i2]], result[iL[i2]+1], result[iL[i2]+2])
+        --result.cullFlags[i] = ((vec2:sub(vec1)):cross(vec3:sub(vec1)):dot(vec1))
+        result.cullFlags[i] = (vec3:cross(vec2)):dot(vec1) --idk one of these. BUG FIX: I've got inverse culling happening. Seeing inside of triangle instead of front.
     end
     --Perspective divide
     for i = 1,#result, 4 do --Divide each vertice by its Z val
