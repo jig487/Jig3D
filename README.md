@@ -2,8 +2,7 @@ First of all, massive credit to fvyshfinkle for helping me with this project. Th
 
 The current state of the engine is not final. This is an older build meant for demonstration purposes.
 
-Currently, rendering is only supported using Advanced Peripherals augmented reality glasses. I do have plans to include plethora's goggles and also base computer craft monitors,
-but those will come once the engine is in a more finalized state.
+Currently, rendering is only supported using Advanced Peripherals augmented reality glasses. I do have plans to include plethora's goggles and also base computer craft monitors / terminal, but those will come once the engine is in a more finalized state.
 
 Currently the "scratch" engine is split up into 3 files:
 
