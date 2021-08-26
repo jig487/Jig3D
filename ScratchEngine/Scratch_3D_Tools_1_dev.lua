@@ -176,8 +176,9 @@ local function screenTransform(objectData,display)
     end
     --Perspective divide
     for i = 1,#result, 4 do --Divide each vertice by its Z val
+                    --Do a bunch of inefficient math to conform to screen space & divide by Z
         local zInv = 1/result[i+2]
-        result[i]   = (result[i]   *zInv +1) * display.x --Transform to screen space
+        result[i]   = ((result[i]  *zInv +1) * display.x) * (display.y/display.x) + display.x*0.5 --Transform to screen space
         result[i+1] = (-result[i+1]*zInv +1) * display.y --Transform to screen space
     end
     return result
