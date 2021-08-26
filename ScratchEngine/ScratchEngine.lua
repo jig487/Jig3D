@@ -1,24 +1,3 @@
---[[
-0,0 -------------------- screen width, 0
-|                        |
-|                        |
-|                        |
-|                        |
-|                        |
-0, screen height ------- Screen width, screen height
-
-3D coordinate plane: Left handed
-
-Y+
-|
-|
-|________ x+
-\
- \
-  \
-   Z-
-]]
-
 
 --Dimensions of your display. Hardcoded for now bc no way to get size of AR goggles
 --If the renders aren't centered to your screen it's because these values are wrong.
@@ -100,7 +79,6 @@ for i = 1, 1000 do
     
     --Render everything in objList with transformed points
     for name,transformedVertices in pairs(projected) do
-        --Change these to just grab all the data for [name] instead of just indexList / colorList?
         draw.drawSolidObj(ar,objList[name].indexList,transformedVertices,objList[name].colorList)
         --draw.drawWireObj(ar,objList[name].indexList,transformedVertices,objList[name].colorList)
     end
