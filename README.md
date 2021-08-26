@@ -43,7 +43,8 @@ draws a wireframe object
    index list. This is in included in an objects default data. Pass that in for the relevant object
       objList[name].indexList
 --vL:
-  vertice list. This is returned from the screenTransform() function. It contains every transformed vertice, as well as a back face culling flag list.
+  vertice list. This is returned from the screenTransform() function. It contains every transformed vertice, 
+  as well as a back face culling flag list.
 --cL:
   a color list. This is included in an objects default data. Pass that in for the relevant object
       objectList[name].colorList
