@@ -43,9 +43,6 @@ ar.clear()
 local dt = require("jig3D")
 local draw = require("jigAR")
 
---Prepare camera and 3d objects to render
-local cam = dt.makeCam()
-
 local objList = {
     c1 = dt.newCube(),
     c2 = dt.newCube(),
@@ -86,12 +83,9 @@ for i = 1, 1000 do
 
     objList.c3.rot.x = (math.cos(os.time()/0.02))*15
 
-    --cam.rot.y = cam.rot.y + 0.5
-    --cam.rot.z = cam.rot.z + 0.25
-
     --Transform everything in objList
     for name,objectData in pairs(objList) do
-        projected[name] = dt.screenTransform(objectData,screenAR,cam)
+        projected[name] = dt.screenTransform(objectData,screenAR)
     end
     
     --os.queueEvent("FakeEvent") --Fake event to prevent `too long without yielding` error
