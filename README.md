@@ -1,6 +1,6 @@
 First of all, massive credit to fvyshfinkle for helping me with this project. This project would not be where it is today without his help.
 
-The current state of the engine is not final. This is an older build of the current experimental one meant for demonstration purposes.
+The current state of the engine is not final. This is an older build meant for demonstration purposes.
 
 Currently, rendering is only supported using Advanced Peripherals augmented reality glasses. I do have plans to include plethora's goggles and also base computer craft monitors,
 but those will come once the engine is in a more finalized state.
