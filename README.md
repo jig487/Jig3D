@@ -17,7 +17,7 @@ AR_Tools: One of the "front ends" of the engine. This handles breaking up triang
   unless you are porting it to some other display.
   
 Function documentation:
-
+```
 3D Tools:
 screenTransform( objectData, display )
 This handles the 3D matrix multiplication for manipulating objects. 
@@ -50,6 +50,6 @@ draws a wireframe object
 
 drawSolidObj(  arController,iL,vL,cL )
   uses the same inputs as the wireframe function.
-  
+  ```
 Example uses for every function:
 See the ScratchEngine.Lua in the scratch engine folder
