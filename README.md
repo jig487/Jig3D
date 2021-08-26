@@ -39,6 +39,9 @@ Returns the default data of their corresponding object.
 AR_Tools:
 drawWireObj( arController,iL,vL,cL )
 draws a wireframe object
+--arController:
+  the handle you wrapped the ARcontroller or equivalent as.
+      ( thing = peripheral.find("arController") --`thing` would be what you pass into the function as the arController )
 --iL:
    index list. This is in included in an objects default data. Pass that in for the relevant object
       objList[name].indexList
