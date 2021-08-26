@@ -90,14 +90,6 @@ local function makeCheapZ(display)
         0, 0, 0, 1, }
 end
 
---Returns camera data
-local function makeCam()
-    return {
-        loc = vector.new(0,0,0),
-        rot = vector.new(0,0,0),
-    }
-end
-
 --Returns data of default cube
 local function newCube()
     local objData = {
@@ -165,7 +157,7 @@ local function newSqr() --Refer to newCube() for comments
 end
 
 --Takes in an entire object and returns transformed vertices and a cullFlag list
-local function screenTransform(objectData,display,camera)
+local function screenTransform(objectData,display)
     local iL = objectData.indexList
     local scale =    makeScale(objectData.scale)
     local rotMat =   makeRotation(objectData.rot)
@@ -199,5 +191,4 @@ return
     newCube = newCube,
     newSqr = newSqr,
     newTri = newTri,
-    makeCam = makeCam,
 }
