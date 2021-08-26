@@ -53,6 +53,7 @@ draws a wireframe object
       objectList[name].colorList
 
 drawSolidObj(  arController,iL,vL,cL )
+Draws a solid object using the provided color list.
   uses the same inputs as the wireframe function.
   ```
 Example uses for every function:
