@@ -2,9 +2,9 @@
 --Dimensions of your display. Hardcoded for now bc no way to get size of AR goggles
 --If the renders aren't centered to your screen it's because these values are wrong.
 local screenAR = {
-    x = 270 *0.5, --Replace with x *0.5, where x is your displays width
+    x = 480 *0.5, --Replace with x *0.5, where x is your displays width
     y = 270 *0.5  --Replace with y *0.5, where y is your displays height
-    --y = x because not messing with aspect ratio right now
+    --Set to square for no particular reason.
 }
 
 --Setup monitor and AR controller
