@@ -6,13 +6,13 @@ Currently, rendering is only supported using Advanced Peripherals augmented real
 
 Currently the "scratch" engine is split up into 3 files:
 
-Engine: This isn't anything important, actually. Really a demo of the API. This is what a file might look like when someone uses the API. Everything in there can be messed with.
+Engine: This is a demo of the API in use.
 
-3D_Tools: The "back end" of the engine. This handles all the math that 3D rendering involves. I can only recommend changing the object creation functions. Seriously, play around
+3D_Tools: The back end of the engine. This handles all the math that 3D rendering involves. I can only recommend changing the object creation functions. Seriously, play around
   with those a little bit. The easiest thing to change is the color palette. Check out the tables used to store location data, rotations, stuff like that. That's how
   you'd animate or otherwise manipulate the objects once you've loaded them into an object list.
   
-AR_Tools: One of the "front ends" of the engine. This handles breaking up triangles to rasterize, and actually draws them. I can't recommend messing with anything in here
+AR_Tools: Closer to the front end of the engine. This handles breaking up triangles to rasterize, and actually draws them. I can't recommend messing with anything in here
   unless you are porting it to some other display.
   
 Function documentation:
