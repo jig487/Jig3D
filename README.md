@@ -1,4 +1,5 @@
-https://github.com/jig487/Jig3D/assets/72327373/a8f05de2-9aea-4166-a470-dd8d8bfa4aa9
+https://github.com/jig487/Jig3D/assets/72327373/7c1b1788-4934-419c-8f94-3650bec6f460
+
 
 First of all, massive credit to fvyshfinkle for helping me with this project. This project would not be where it is today without his help.
 
