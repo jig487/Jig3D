@@ -1,3 +1,5 @@
+https://github.com/jig487/Jig3D/assets/72327373/a8f05de2-9aea-4166-a470-dd8d8bfa4aa9
+
 First of all, massive credit to fvyshfinkle for helping me with this project. This project would not be where it is today without his help.
 
 The current state of the engine is not final. This is an older build meant for demonstration purposes.
@@ -13,7 +15,9 @@ Engine: This is a demo of the API in use.
   you'd animate or otherwise manipulate the objects once you've loaded them into an object list.
   
 AR_Tools: Closer to the front end of the engine. This handles breaking up triangles to rasterize, and actually draws them. I can't recommend messing with anything in here
-  unless you are porting it to some other display.
+  unless you are
+
+ porting it to some other display.
   
 Function documentation:
 ```
